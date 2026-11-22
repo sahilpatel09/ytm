@@ -1,0 +1,233 @@
+Screen {
+    background: $background;
+    color: $foreground;
+}
+
+Header, Footer {
+    background: $panel;
+}
+
+#main {
+    layout: vertical;
+    height: 1fr;
+}
+
+SearchPane, QueuePane {
+    width: 100%;
+    padding: 0 1;
+    background: $surface;
+}
+
+SearchPane {
+    height: 3fr;
+}
+
+QueuePane {
+    height: 2fr;
+    border-top: solid $foreground 18%;
+}
+
+Screen.-wide #main {
+    layout: horizontal;
+}
+
+Screen.-wide SearchPane {
+    width: 3fr;
+    height: 1fr;
+}
+
+Screen.-wide QueuePane {
+    width: 2fr;
+    height: 1fr;
+    border-top: none;
+    border-left: solid $foreground 18%;
+}
+
+.pane-title {
+    height: 1;
+    text-style: bold;
+    text-wrap: nowrap;
+    text-overflow: ellipsis;
+}
+
+SearchPane:focus-within .pane-title,
+QueuePane:focus-within .pane-title {
+    color: $text-accent;
+}
+
+.empty-hint {
+    color: $text-muted;
+}
+
+#search-input {
+    margin-top: 1;
+    background: $panel;
+    border-left: vkey $foreground 18%;
+}
+
+Screen.-wide #search-input {
+    margin-bottom: 1;
+}
+
+#search-input:focus {
+    border-left: vkey $accent;
+}
+
+#results, #queue-list {
+    height: 1fr;
+    background: $surface;
+}
+
+ListView:focus {
+    background-tint: transparent;
+}
+
+ListView > .track-item {
+    layout: horizontal;
+    height: 2;
+    padding: 0 1 0 2;
+}
+
+ListView > .track-item.-highlight {
+    background: $foreground 5%;
+    text-style: none;
+}
+
+ListView:focus > .track-item.-highlight {
+    border-left: vkey $accent;
+    background: $accent 16%;
+    padding-left: 1;
+    text-style: none;
+}
+
+.track-details {
+    width: 1fr;
+    height: 2;
+}
+
+.track-line {
+    height: 1;
+}
+
+.track-title, .track-metadata {
+    width: 1fr;
+    height: 1;
+    text-wrap: nowrap;
+    text-overflow: ellipsis;
+}
+
+.track-title {
+    min-width: 0;
+    text-style: bold;
+}
+
+.track-metadata, .track-duration, .track-marker {
+    color: $text-muted;
+}
+
+.track-marker, .track-duration {
+    width: auto;
+    height: 1;
+}
+
+.track-duration {
+    margin-left: 1;
+}
+
+.track-marker {
+    min-width: 3;
+    margin-right: 1;
+    text-align: right;
+}
+
+.track-item.-playing .track-marker {
+    color: $text-accent;
+}
+
+#playback {
+    height: 3;
+    background: $panel;
+    border-top: solid $foreground 18%;
+    padding: 0 1;
+}
+
+PlaybackBar .playback--accent {
+    color: $text-accent;
+}
+
+PlaybackBar .playback--muted {
+    color: $text-muted;
+}
+
+HelpScreen, LyricsScreen, NamePromptScreen {
+    align: center middle;
+    background: $background 80%;
+}
+
+.dialog {
+    width: 94%;
+    border: round $foreground 28%;
+    background: $surface;
+    padding: 1 2;
+    border-title-color: $text-accent;
+    border-subtitle-color: $text-muted;
+}
+
+.dialog-title {
+    width: 100%;
+    height: auto;
+    color: $text-accent;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+#help-box {
+    height: 90%;
+    max-height: 35;
+    max-width: 72;
+}
+
+#name-box {
+    height: auto;
+    max-width: 60;
+}
+
+#lyrics-panel {
+    height: 92%;
+    max-width: 88;
+}
+
+#lyrics-head {
+    height: 1;
+    text-wrap: nowrap;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+
+#help-scroll, #lyrics-scroll {
+    height: 1fr;
+}
+
+#results, #queue-list, #help-scroll, #lyrics-scroll {
+    scrollbar-size-vertical: 1;
+    scrollbar-background: $surface;
+    scrollbar-background-hover: $surface;
+    scrollbar-background-active: $surface;
+    scrollbar-color: $foreground 24%;
+    scrollbar-color-hover: $accent 60%;
+    scrollbar-color-active: $accent;
+}
+
+#lyrics-note, .lyric-line {
+    width: 100%;
+    text-align: center;
+}
+
+#lyrics-note, .lyric-line.lyric-past {
+    color: $text-muted;
+}
+
+.lyric-line.lyric-current {
+    color: $text-accent;
+    text-style: bold;
+}

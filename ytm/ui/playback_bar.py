@@ -1,17 +1,31 @@
 from __future__ import annotations
 
+from rich.cells import cell_len
 from rich.text import Text
+from textual.binding import Binding
 from textual.widgets import Static
 
 from ytm.services.music import Track
 
 
-def _fmt(seconds: float) -> str:
+PLAYBACK_SCREEN_BINDINGS = [
+    Binding("space", "app.toggle_pause", "Play/pause", show=False),
+    Binding("n", "app.next_track", "Next", show=False),
+    Binding("p", "app.prev_track", "Prev", show=False),
+    Binding("+", "app.volume_up", show=False),
+    Binding("=", "app.volume_up", show=False),
+    Binding("-", "app.volume_down", show=False),
+]
+
+
+def format_time(seconds: float) -> str:
     total = int(max(0, seconds))
     return f"{total // 60}:{total % 60:02d}"
 
 
 class PlaybackBar(Static):
+    COMPONENT_CLASSES = {"playback--accent", "playback--muted"}
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.track: Track | None = None
@@ -19,7 +33,7 @@ class PlaybackBar(Static):
         self.duration = 0.0
         self.paused = False
         self.volume = 60.0
-        self.status = "press / to search"
+        self.status = "Nothing playing"
 
     def set_track(self, track: Track | None) -> None:
         self.track = track
@@ -46,24 +60,35 @@ class PlaybackBar(Static):
             self.refresh()
 
     def render(self) -> Text:
-        width = self.size.width or 100
+        muted = self.get_component_rich_style("playback--muted")
         if self.track is None:
-            return Text(f" {self.status}", style="dim")
+            return Text(self.status, style=muted, overflow="ellipsis", no_wrap=True)
 
+        width = self.content_size.width
+        accent = self.get_component_rich_style("playback--accent")
         marker = "⏸" if self.paused else "▶"
-        total = self.duration or float(self.track.duration_seconds or 0)
-        bar_width = 24 if width >= 90 else 12
-        if total > 0:
-            filled = min(bar_width, max(0, int(bar_width * self.position / total)))
+        title = Text.assemble((f"{marker} ", accent), (self.track.title, "bold"))
+        if self.track.artist:
+            title.append(f" · {self.track.artist}", style=muted)
+        volume = f" Vol {int(self.volume)}%"
+        if width >= cell_len(volume) + 8:
+            title.truncate(width - cell_len(volume), overflow="ellipsis", pad=True)
+            title.append(volume, style=muted)
         else:
-            filled = 0
-        bar = "█" * filled + "░" * (bar_width - filled)
-        right = f" {_fmt(self.position)}/{_fmt(total)} [{bar}] vol {int(self.volume)} "
+            title.truncate(width, overflow="ellipsis")
 
-        title = f"{self.track.title} — {self.track.artist}"
-        space = width - len(right) - 4
-        if space < 8:
-            return Text(f" {marker} {right.strip()}")
-        if len(title) > space:
-            title = title[: space - 1] + "…"
-        return Text(f" {marker} {title}{right.rjust(width - len(title) - 3)}")
+        elapsed = format_time(self.position)
+        total = format_time(self.duration) if self.duration > 0 else "--:--"
+        bar_width = max(0, width - cell_len(elapsed) - cell_len(total) - 2)
+        filled = 0
+        if self.duration > 0:
+            fraction = min(1.0, max(0.0, self.position / self.duration))
+            filled = int(bar_width * fraction)
+        progress = Text.assemble(
+            (f"{elapsed} ", muted),
+            ("━" * filled, accent),
+            ("─" * (bar_width - filled), muted),
+            (f" {total}", muted),
+        )
+        progress.truncate(width, overflow="ellipsis")
+        return Text("\n", no_wrap=True).join((title, progress))

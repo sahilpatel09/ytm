@@ -1,33 +1,13 @@
 from __future__ import annotations
 
-from rich.markup import escape
+from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.widgets import Input, Label, ListItem, ListView, Static
-
-from ytm.services.music import Track
-
-
-class SearchResultItem(ListItem):
-    def __init__(self, track: Track) -> None:
-        super().__init__()
-        self.track = track
-
-    def compose(self):
-        yield Label(self._line())
-
-    def _line(self) -> str:
-        t = self.track
-        line = f"{escape(t.title)}  —  {escape(t.artist)}"
-        if t.album:
-            line += f"  ·  {escape(t.album)}"
-        if t.duration:
-            line += f"  [{t.duration}]"
-        return line
+from textual.widgets import Input, ListView, Static
 
 
 class SearchPane(Vertical):
-    def compose(self):
-        yield Input(placeholder="Search YouTube Music  (press / anywhere)", id="search-input")
+    def compose(self) -> ComposeResult:
+        yield Input(placeholder="Search YouTube Music", id="search-input", compact=True)
         yield Static("Results", classes="pane-title")
-        yield Static("No results yet — press / to search", id="results-empty", classes="empty-hint")
+        yield Static("Search for a song or artist", id="results-empty", classes="empty-hint")
         yield ListView(id="results")

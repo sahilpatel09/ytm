@@ -15,29 +15,6 @@ class NamePromptScreen(ModalScreen[str | None]):
         Binding("escape", "cancel", "Cancel", show=False),
     ]
 
-    CSS = """
-    NamePromptScreen {
-        align: center middle;
-        background: $background 70%;
-    }
-    #name-box {
-        width: 60;
-        height: auto;
-        border: round $accent;
-        background: $surface;
-        padding: 1 2;
-    }
-    #name-title {
-        width: 100%;
-        text-style: bold;
-        color: $accent;
-        padding-bottom: 1;
-    }
-    #name-input {
-        width: 100%;
-    }
-    """
-
     def __init__(self, title: str, value: str = "", **kwargs) -> None:
         super().__init__(**kwargs)
         self._title = title
@@ -45,16 +22,15 @@ class NamePromptScreen(ModalScreen[str | None]):
 
     def compose(self) -> ComposeResult:
         yield Vertical(
-            Static(self._title, id="name-title"),
+            Static(self._title, classes="dialog-title"),
             Input(value=self._value, id="name-input", placeholder="queue name"),
             id="name-box",
+            classes="dialog",
         )
 
     def on_mount(self) -> None:
-        inp = self.query_one("#name-input", Input)
-        inp.focus()
-        if self._value:
-            inp.select_all()
+        self.query_one("#name-box").border_subtitle = "Enter save · Esc cancel"
+        self.query_one("#name-input", Input).focus()
 
     @on(Input.Submitted, "#name-input")
     def on_submitted(self, event: Input.Submitted) -> None:

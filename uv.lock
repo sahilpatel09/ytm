@@ -484,7 +484,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "syncedlyrics", specifier = ">=1.0.1" },
-    { name = "textual", specifier = ">=0.80.0" },
+    { name = "textual", specifier = ">=3.2.0" },
     { name = "yt-dlp", specifier = ">=2025.1.1" },
     { name = "ytmusicapi", specifier = ">=1.0.0" },
 ]

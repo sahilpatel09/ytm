@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import asyncio
+import os
 
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal
+from textual.containers import Container
+from textual.theme import Theme
 from textual.widgets import Footer, Header, Input, ListView, Static
+from textual.widgets.input import Selection
 
 from ytm.queue import PlayQueue
 from ytm.services.lyrics import LyricsService
@@ -19,17 +22,18 @@ from ytm.ui.lyrics import LyricsScreen
 from ytm.ui.name_prompt import NamePromptScreen
 from ytm.ui.playback_bar import PlaybackBar
 from ytm.ui.queue_view import QueueItemWidget, QueuePane
-from ytm.ui.search_view import SearchResultItem, SearchPane
+from ytm.ui.search_view import SearchPane
+from ytm.ui.track_item import TrackItem
 
 BINDINGS = [
     Binding("slash", "focus_search", "Search"),
     Binding("question_mark", "show_help", "Help"),
     Binding("f1", "show_help", show=False),
     Binding("space", "toggle_pause", "Play/Pause"),
-    Binding("n", "next_track", "Next"),
-    Binding("p", "prev_track", "Prev"),
-    Binding("l", "toggle_lyrics", "Lyrics"),
-    Binding("a", "add_to_queue", "Enqueue"),
+    Binding("n", "next_track", "Next", show=False),
+    Binding("p", "prev_track", "Prev", show=False),
+    Binding("l", "toggle_lyrics", "Lyrics", show=False),
+    Binding("a", "add_to_queue", "Enqueue", show=False),
     Binding("x", "remove_from_queue", "Remove", show=False),
     Binding("[", "prev_queue", "Prev queue", show=False),
     Binding("]", "next_queue", "Next queue", show=False),
@@ -57,84 +61,45 @@ BINDINGS = [
     Binding("-", "volume_down", "Vol-", show=False),
     Binding("ctrl+up", "volume_up", show=False),
     Binding("ctrl+down", "volume_down", show=False),
-    Binding("q", "quit", "Quit"),
+    Binding("q", "quit", "Quit", show=False),
 ]
 
-CSS = """
-#main {
-    height: 1fr;
-}
-SearchPane {
-    width: 3fr;
-    height: 1fr;
-    padding: 0 1;
-    border: round $primary;
-}
-SearchPane:focus-within {
-    border: round $accent;
-}
-QueuePane {
-    width: 2fr;
-    height: 1fr;
-    padding: 0 1;
-    border: round $primary;
-}
-QueuePane:focus-within {
-    border: round $accent;
-}
-.pane-title {
-    text-style: bold;
-    color: $text-muted;
-    padding: 0 0 1 0;
-}
-SearchPane:focus-within .pane-title,
-QueuePane:focus-within .pane-title {
-    color: $accent;
-}
-.empty-hint {
-    color: $text-muted;
-    text-style: italic;
-    padding: 0 0 1 0;
-}
-#search-input {
-    margin: 1 0;
-}
-#results {
-    height: 1fr;
-}
-#queue-list {
-    height: 1fr;
-}
-#playback {
-    height: 3;
-    dock: bottom;
-    background: $surface;
-    border-top: tall $primary;
-    padding: 0 1;
-    content-align: left middle;
-}
-"""
+YTM_THEME = Theme(
+    name="ytm",
+    primary="#d58b80",
+    accent="#f29b8b",
+    foreground="#f2ebe8",
+    background="#161518",
+    surface="#1f1d21",
+    panel="#29262b",
+)
 
 
 class YtmApp(App):
     TITLE = "ytm"
     SUB_TITLE = "youtube music"
-    CSS = CSS
+    CSS_PATH = "ytm.tcss"
+    HORIZONTAL_BREAKPOINTS = [(80, "-wide")]
     BINDINGS = BINDINGS
 
     # -- lifecycle --------------------------------------------------------
 
     def compose(self) -> ComposeResult:
-        yield Header(show_clock=True)
-        with Horizontal(id="main"):
+        yield Header()
+        with Container(id="main"):
             yield SearchPane()
             yield QueuePane()
         yield PlaybackBar(id="playback")
-        yield Footer()
+        footer = Footer(show_command_palette=False)
+        footer.compact = True
+        yield footer
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
         import atexit
 
+        self.register_theme(YTM_THEME)
+        preferred_theme = self.get_theme(os.environ.get("TEXTUAL_THEME", YTM_THEME.name))
+        self.theme = (preferred_theme or YTM_THEME).name
         self.music = MusicService()
         self.resolver = StreamResolver()
         self.lyrics_service = LyricsService()
@@ -156,7 +121,7 @@ class YtmApp(App):
         except Exception as exc:
             self.notify(f"mpv failed to start: {exc}", severity="error")
         atexit.register(self.cleanup)
-        self._update_queue_title()
+        await self._rebuild_queue()
         self.query_one("#search-input", Input).focus()
 
     def cleanup(self) -> None:
@@ -187,7 +152,7 @@ class YtmApp(App):
 
     def _update_queue_title(self) -> None:
         title = self.query_one("#queue-title", Static)
-        title.update(f"Queue: {self.store.active_name} — {len(self.queue)} track(s)")
+        title.update(f"Queue · {self.store.active_name} · {len(self.queue)}")
 
     # -- search -----------------------------------------------------------
 
@@ -209,6 +174,7 @@ class YtmApp(App):
             self.notify(f"search failed: {exc}", severity="error")
             return
         self.results = tracks
+        self.query_one("#results-empty", Static).update("No tracks found")
         await self._rebuild_results()
         results = self.query_one("#results", ListView)
         results.focus()
@@ -219,7 +185,7 @@ class YtmApp(App):
     async def _rebuild_results(self) -> None:
         results = self.query_one("#results", ListView)
         await results.clear()
-        await results.extend([SearchResultItem(t) for t in self.results])
+        await results.extend([TrackItem(t) for t in self.results])
         if self.results:
             results.index = 0
         self.query_one("#results-empty", Static).display = not bool(self.results)
@@ -283,7 +249,7 @@ class YtmApp(App):
             self.sub_title = "playback error"
             self.notify(f"playback error: {exc}", severity="error")
             return
-        self.sub_title = f"▶ {track.title} — {track.artist}"
+        self.sub_title = self.SUB_TITLE
         self._prefetch_next()
         self._prefetch_lyrics(track)
 
@@ -351,7 +317,7 @@ class YtmApp(App):
     def action_focus_search(self) -> None:
         inp = self.query_one("#search-input", Input)
         inp.focus()
-        inp.select_all()
+        inp.selection = Selection(0, len(inp.value))
 
     def action_show_help(self) -> None:
         self.push_screen(HelpScreen())
