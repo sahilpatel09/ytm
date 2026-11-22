@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "YouTube Music player in the terminal"
 requires-python = ">=3.11"
 dependencies = [
+    "pillow>=12",
     "textual>=3.2.0",
+    "textual-image[textual]>=0.8.5",
     "ytmusicapi>=1.0.0",
     "yt-dlp>=2025.1.1",
     "syncedlyrics>=1.0.1",

@@ -231,3 +231,94 @@ HelpScreen, LyricsScreen, NamePromptScreen {
     color: $text-accent;
     text-style: bold;
 }
+
+NowPlayingScreen {
+    background: $background;
+}
+
+#now-playing-heading, #now-playing-controls {
+    height: 1;
+    background: $panel;
+    text-align: center;
+}
+
+#now-playing-heading, .now-playing-lyrics-title {
+    color: $text-accent;
+    text-style: bold;
+}
+
+#now-playing-controls {
+    color: $text-muted;
+}
+
+#now-playing-details, #now-playing-lyrics {
+    width: 100%;
+    height: 1fr;
+    padding: 1 2;
+    background: $surface;
+    scrollbar-size-vertical: 1;
+}
+
+#now-playing-details {
+    align: center middle;
+}
+
+#now-playing-details > Static {
+    max-width: 72;
+    text-align: center;
+}
+
+#now-playing-title {
+    text-style: bold;
+}
+
+#now-playing-artist, #now-playing-album, #now-playing-status, #now-playing-cell-cover {
+    color: $text-muted;
+}
+
+#now-playing-status, #now-playing-cover {
+    margin-top: 1;
+}
+
+#now-playing-cover {
+    width: 100%;
+    height: auto;
+    max-width: 32;
+    align-horizontal: center;
+}
+
+#now-playing-cell-cover {
+    text-align: center;
+}
+
+#now-playing-native-cover {
+    display: none;
+    width: auto;
+    height: auto;
+    max-height: 16;
+}
+
+#now-playing-lyrics {
+    display: none;
+    border-top: solid $foreground 18%;
+}
+
+.now-playing-lyrics-title {
+    text-align: center;
+    margin-bottom: 1;
+}
+
+NowPlayingScreen.-wide #now-playing-body {
+    layout: horizontal;
+}
+
+NowPlayingScreen.-wide #now-playing-details,
+NowPlayingScreen.-wide #now-playing-lyrics {
+    width: 1fr;
+    height: 100%;
+}
+
+NowPlayingScreen.-wide #now-playing-lyrics {
+    border-top: none;
+    border-left: solid $foreground 18%;
+}

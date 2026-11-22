@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+from typing import TYPE_CHECKING
 
 from textual import on, work
 from textual.app import App, ComposeResult
@@ -20,10 +21,14 @@ from ytm.store import QueueStore
 from ytm.ui.help import HelpScreen
 from ytm.ui.lyrics import LyricsScreen
 from ytm.ui.name_prompt import NamePromptScreen
+from ytm.ui.now_playing import NowPlayingScreen
 from ytm.ui.playback_bar import PlaybackBar
 from ytm.ui.queue_view import QueueItemWidget, QueuePane
 from ytm.ui.search_view import SearchPane
 from ytm.ui.track_item import TrackItem
+
+if TYPE_CHECKING:
+    from textual_image.widget import TGPImage
 
 BINDINGS = [
     Binding("slash", "focus_search", "Search"),
@@ -33,6 +38,7 @@ BINDINGS = [
     Binding("n", "next_track", "Next", show=False),
     Binding("p", "prev_track", "Prev", show=False),
     Binding("l", "toggle_lyrics", "Lyrics", show=False),
+    Binding("s", "show_now_playing", "Now Playing", show=False),
     Binding("a", "add_to_queue", "Enqueue", show=False),
     Binding("x", "remove_from_queue", "Remove", show=False),
     Binding("[", "prev_queue", "Prev queue", show=False),
@@ -83,6 +89,10 @@ class YtmApp(App):
     BINDINGS = BINDINGS
 
     # -- lifecycle --------------------------------------------------------
+
+    def __init__(self, *, native_cover: type[TGPImage] | None = None, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self._native_cover = native_cover
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -389,6 +399,12 @@ class YtmApp(App):
             self.notify("nothing playing yet", severity="warning")
             return
         self.push_screen(LyricsScreen())
+
+    def action_show_now_playing(self) -> None:
+        if self.bar.track is None:
+            self.notify("nothing playing yet", severity="warning")
+            return
+        self.push_screen(NowPlayingScreen(native_cover=self._native_cover))
 
     def action_prev_track(self) -> None:
         track = self.queue.prev()

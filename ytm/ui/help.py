@@ -35,6 +35,7 @@ HELP = """
   n  /  p           next / previous track
   +  /  -           volume
   l                 lyrics overlay (live-synced)
+  s                 full-screen Now Playing (s or Esc to close)
   q                 quit (stops playback)
 
   ?                 this help
