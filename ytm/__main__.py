@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import os
 import sys
+from importlib import metadata
 from typing import TYPE_CHECKING
-
-from ytm.app import YtmApp
 
 if TYPE_CHECKING:
     from textual_image.widget import TGPImage
@@ -33,6 +32,12 @@ def native_cover_widget() -> type[TGPImage] | None:
 
 
 def main() -> None:
+    if sys.argv[1:] == ["--version"]:
+        print(f"ytm {metadata.version('ytm')}")
+        return
+
+    from ytm.app import YtmApp
+
     app = YtmApp(native_cover=native_cover_widget())
     try:
         app.run()
