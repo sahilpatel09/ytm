@@ -10,6 +10,7 @@ dependencies = [
     "ytmusicapi>=1.0.0",
     "yt-dlp>=2025.1.1",
     "syncedlyrics>=1.0.1",
+    "textual-serve>=1.1.3",
 ]
 
 [project.scripts]

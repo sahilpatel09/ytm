@@ -36,6 +36,12 @@ def main() -> None:
         print(f"ytm {metadata.version('ytm')}")
         return
 
+    if sys.argv[1:] == ["--web"]:
+        from ytm.web import serve
+
+        serve()
+        return
+
     from ytm.app import YtmApp
 
     app = YtmApp(native_cover=native_cover_widget())

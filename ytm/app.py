@@ -93,6 +93,7 @@ class YtmApp(App):
     def __init__(self, *, native_cover: type[TGPImage] | None = None, **kwargs) -> None:
         super().__init__(**kwargs)
         self._native_cover = native_cover
+        self._cleaned = False
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -119,7 +120,6 @@ class YtmApp(App):
         except Exception:
             pass
         self.results: list[Track] = []
-        self._cleaned = False
         self._player_ok = False
         self.bar = self.query_one("#playback", PlaybackBar)
         self.player = MpvPlayer(self._on_player_event)
@@ -142,7 +142,7 @@ class YtmApp(App):
             self.store.save()
         except Exception:
             pass
-        if self._player_ok:
+        if hasattr(self, "player"):
             try:
                 self.player.close()
             except Exception:
